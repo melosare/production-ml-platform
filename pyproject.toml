@@ -7,7 +7,9 @@ name = "production-ml-platform"
 version = "0.1.0"
 description = "Production-oriented machine learning platform; data ingestion, feature engineering, model training, inference, monitoring."
 requires-python = ">=3.11,<3.12"
-dependencies = []
+dependencies = [
+    "PyYAML>=6.0",
+]
 
 [project.optional-dependencies]
 dev = [
