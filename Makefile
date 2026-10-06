@@ -1,7 +1,7 @@
-.PHONY: format lint typecheck test check
+.PHONY: test lint typecheck train run quality
 
-format:
-	ruff format .
+test:
+	pytest
 
 lint:
 	ruff check .
@@ -9,11 +9,11 @@ lint:
 typecheck:
 	mypy src
 
-test:
-	pytest
+train:
+	python scripts/train_baseline_model.py
 
-check:
-	ruff format --check .
-	ruff check .
-	mypy src
-	pytest
+run:
+	uvicorn ml_platform.api.main:create_application --factory
+
+quality: lint typecheck test
+
