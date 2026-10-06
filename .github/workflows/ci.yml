@@ -39,3 +39,35 @@ jobs:
 
       - name: Test
         run: pytest
+
+      - name: Build production Docker image
+        run: docker build -t production-ml-platform:ci .
+
+      - name: Run Docker tests
+        run: docker compose run --rm test
+
+      - name: Start production container
+        run: |
+          docker run -d \
+            --name production-ml-platform-ci \
+            -p 8000:8000 \
+            -e ML_PLATFORM_CONFIG=configs/production.yaml \
+            production-ml-platform:ci
+
+      - name: Runtime smoke test
+        run: |
+          for attempt in {1..10}; do
+            if curl --fail --silent http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs production-ml-platform-ci
+          exit 1
+
+      - name: Readiness smoke test
+        run: curl --fail --silent http://localhost:8000/ready
+
+      - name: Stop production container
+        if: always()
+        run: docker rm -f production-ml-platform-ci
