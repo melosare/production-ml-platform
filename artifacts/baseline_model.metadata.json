@@ -1,0 +1,24 @@
+{
+  "model_version": "baseline-1.0.0",
+  "model_type": "LogisticRegression",
+  "feature_names": [
+    "event_count",
+    "session_count",
+    "page_view_count",
+    "feature_usage_count"
+  ],
+  "random_state": 42,
+  "training_examples": 70,
+  "validation_examples": 10,
+  "test_examples": 20,
+  "validation_metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "test_metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  }
+}

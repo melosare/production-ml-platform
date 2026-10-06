@@ -1,25 +1,24 @@
 from pathlib import Path
 
-from ml_platform.data.loader import load_events
-from ml_platform.features.pipeline import build_features
-from ml_platform.model.baseline import train_baseline_model
-from ml_platform.model.persistence import save_model
-from ml_platform.training.dataset import create_training_dataset
+from ml_platform.training.pipeline import train_and_persist_model
 
 FIXTURE_PATH = Path("tests/fixtures/synthetic_events.csv")
 MODEL_PATH = Path("artifacts/baseline_model.joblib")
+METADATA_PATH = Path("artifacts/baseline_model.metadata.json")
 
 
 def main() -> None:
     """Train and persist the baseline model."""
-    events = load_events(FIXTURE_PATH)
-    features = build_features(events)
-    examples = create_training_dataset(features)
-
-    model = train_baseline_model(examples)
-    save_model(model, MODEL_PATH)
+    metadata = train_and_persist_model(
+        data_path=FIXTURE_PATH,
+        model_path=MODEL_PATH,
+        metadata_path=METADATA_PATH,
+    )
 
     print(f"Saved baseline model to {MODEL_PATH}")
+    print(f"Saved model metadata to {METADATA_PATH}")
+    print(f"Validation metrics: {metadata.validation_metrics}")
+    print(f"Test metrics: {metadata.test_metrics}")
 
 
 if __name__ == "__main__":

@@ -15,24 +15,50 @@ def make_examples() -> list[TrainingExample]:
             feature_usage_count=index // 2,
             target=index % 2,
         )
-        for index in range(1, 11)
+        for index in range(1, 21)
     ]
 
 
 def test_split_training_dataset() -> None:
-    """The dataset is split into training and test sets."""
+    """The dataset is split into training, validation, and test sets."""
     examples = make_examples()
 
     split = split_training_dataset(examples)
 
-    assert len(split.training) == 8
-    assert len(split.test) == 2
+    assert len(split.training) == 14
+    assert len(split.validation) == 2
+    assert len(split.test) == 4
+
+
+def test_split_training_dataset_partitions_are_disjoint() -> None:
+    """The three partitions do not contain overlapping examples."""
+    examples = make_examples()
+
+    split = split_training_dataset(examples)
 
     training_ids = {example.user_id for example in split.training}
+    validation_ids = {example.user_id for example in split.validation}
     test_ids = {example.user_id for example in split.test}
 
+    assert training_ids.isdisjoint(validation_ids)
     assert training_ids.isdisjoint(test_ids)
-    assert training_ids | test_ids == {example.user_id for example in examples}
+    assert validation_ids.isdisjoint(test_ids)
+
+
+def test_split_training_dataset_is_exhaustive() -> None:
+    """Every input example appears in exactly one partition."""
+    examples = make_examples()
+
+    split = split_training_dataset(examples)
+
+    input_ids = {example.user_id for example in examples}
+    split_ids = (
+        {example.user_id for example in split.training}
+        | {example.user_id for example in split.validation}
+        | {example.user_id for example in split.test}
+    )
+
+    assert split_ids == input_ids
 
 
 def test_split_training_dataset_is_deterministic() -> None:
@@ -46,13 +72,29 @@ def test_split_training_dataset_is_deterministic() -> None:
 
 
 def test_split_training_dataset_preserves_target_distribution() -> None:
-    """The split contains both target classes."""
+    """Every partition contains both target classes."""
     examples = make_examples()
 
     split = split_training_dataset(examples)
 
     assert {example.target for example in split.training} == {0, 1}
+    assert {example.target for example in split.validation} == {0, 1}
     assert {example.target for example in split.test} == {0, 1}
+
+
+def test_split_training_dataset_accepts_custom_sizes() -> None:
+    """Custom validation and test sizes are respected."""
+    examples = make_examples()
+
+    split = split_training_dataset(
+        examples,
+        validation_size=0.2,
+        test_size=0.2,
+    )
+
+    assert len(split.training) == 12
+    assert len(split.validation) == 4
+    assert len(split.test) == 4
 
 
 def test_split_training_dataset_rejects_empty_dataset() -> None:
@@ -61,18 +103,44 @@ def test_split_training_dataset_rejects_empty_dataset() -> None:
         split_training_dataset([])
 
 
-def test_split_training_dataset_rejects_single_example() -> None:
-    """A dataset with fewer than two examples is rejected."""
+def test_split_training_dataset_rejects_too_few_examples() -> None:
+    """A dataset with fewer than three examples is rejected."""
     example = make_examples()[0]
 
     with pytest.raises(
         ValueError,
-        match="at least two examples are required",
+        match="at least three examples are required",
     ):
-        split_training_dataset([example])
+        split_training_dataset([example, example])
 
 
-def test_split_training_dataset_rejects_invalid_test_size() -> None:
+@pytest.mark.parametrize(
+    "validation_size",
+    [0.0, 1.0, -0.1],
+)
+def test_split_training_dataset_rejects_invalid_validation_size(
+    validation_size: float,
+) -> None:
+    """An invalid validation size is rejected."""
+    examples = make_examples()
+
+    with pytest.raises(
+        ValueError,
+        match="validation_size must be between 0 and 1",
+    ):
+        split_training_dataset(
+            examples,
+            validation_size=validation_size,
+        )
+
+
+@pytest.mark.parametrize(
+    "test_size",
+    [0.0, 1.0, -0.1],
+)
+def test_split_training_dataset_rejects_invalid_test_size(
+    test_size: float,
+) -> None:
     """An invalid test size is rejected."""
     examples = make_examples()
 
@@ -80,4 +148,22 @@ def test_split_training_dataset_rejects_invalid_test_size() -> None:
         ValueError,
         match="test_size must be between 0 and 1",
     ):
-        split_training_dataset(examples, test_size=1.0)
+        split_training_dataset(
+            examples,
+            test_size=test_size,
+        )
+
+
+def test_split_training_dataset_rejects_sizes_that_leave_no_training_data() -> None:
+    """Validation and test sizes must leave data for training."""
+    examples = make_examples()
+
+    with pytest.raises(
+        ValueError,
+        match="validation_size \\+ test_size must be less than 1",
+    ):
+        split_training_dataset(
+            examples,
+            validation_size=0.5,
+            test_size=0.5,
+        )
