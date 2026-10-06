@@ -1,2 +1,4 @@
 environment: production
 log_level: INFO
+model_path: artifacts/baseline_model.joblib
+

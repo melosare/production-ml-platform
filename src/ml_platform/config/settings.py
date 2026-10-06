@@ -6,7 +6,7 @@ from ml_platform.config.models import ApplicationSettings
 
 
 def load_settings(path: str | Path) -> ApplicationSettings:
-    """App settings from a YAML"""
+    """Load application settings from a YAML file."""
     config_path = Path(path)
 
     with config_path.open("r", encoding="utf-8") as file:
@@ -15,4 +15,5 @@ def load_settings(path: str | Path) -> ApplicationSettings:
     return ApplicationSettings(
         environment=configuration["environment"],
         log_level=configuration["log_level"],
+        model_path=configuration["model_path"],
     )

@@ -1,2 +1,3 @@
 environment: development
 log_level: DEBUG
+model_path: artifacts/baseline_model.joblib

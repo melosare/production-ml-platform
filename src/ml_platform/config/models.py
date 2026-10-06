@@ -7,3 +7,4 @@ class ApplicationSettings:
 
     environment: str
     log_level: str
+    model_path: str
