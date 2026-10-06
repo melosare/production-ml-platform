@@ -40,6 +40,9 @@ jobs:
       - name: Test
         run: pytest
 
+      - name: Train deterministic baseline model
+        run: python scripts/train_baseline_model.py
+
       - name: Build production Docker image
         run: docker build -t production-ml-platform:ci .
 
