@@ -13,4 +13,5 @@ def create_application(config_path: str | Path | None = None) -> FastAPI:
             "ML_PLATFORM_CONFIG",
             "configs/development.yaml",
         )
+
     return create_app_from_config(config_path)
