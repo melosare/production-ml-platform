@@ -223,3 +223,34 @@ def test_create_app_from_config(tmp_path: Path) -> None:
 
     assert body["predicted_class"] in {0, 1}
     assert 0.0 <= body["probability"] <= 1.0
+
+
+def test_create_app_from_config_supports_environment_overrides(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Environment variables override YAML application settings."""
+    model = train_baseline_model(make_examples())
+
+    model_path = tmp_path / "baseline_model.joblib"
+    save_model(model, model_path)
+
+    config_path = tmp_path / "production.yaml"
+    config_path.write_text(
+        "environment: development\n"
+        "log_level: DEBUG\n"
+        f"model_path: {tmp_path / 'missing_model.joblib'}\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("ML_PLATFORM_ENVIRONMENT", "production")
+    monkeypatch.setenv("ML_PLATFORM_LOG_LEVEL", "INFO")
+    monkeypatch.setenv("ML_PLATFORM_MODEL_PATH", str(model_path))
+
+    app = create_app_from_config(config_path)
+    client = TestClient(app)
+
+    response = client.get("/ready")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready"}
