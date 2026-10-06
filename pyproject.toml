@@ -19,6 +19,7 @@ dev = [
     "pytest-cov",
     "ruff",
     "scikit-learn",
+    "types-PyYAML",
 ]
 
 [tool.setuptools.packages.find]
