@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from ml_platform.model.baseline import ModelInput
+from ml_platform.model.persistence import load_model
 from ml_platform.service.prediction import PredictionService
 
 
@@ -48,3 +51,11 @@ def create_app(service: PredictionService) -> FastAPI:
         )
 
     return app
+
+
+def create_app_from_model_path(model_path: str | Path) -> FastAPI:
+    """Create the prediction API using a persisted model."""
+    model = load_model(model_path)
+    service = PredictionService(model)
+
+    return create_app(service)

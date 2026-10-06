@@ -1,9 +1,9 @@
-ML Platform
+# ML Platform
 A production-oriented machine learning platform: develop, test, containerize, and deploy
 
 Status: Early development — platform foundation established; core ML functionality is under active development.
 
-Objectives
+## Objectives
 The platform will provide an end-to-end foundation for machine learning workflows, including:
 
 - Data ingestion and validation
@@ -15,7 +15,7 @@ The platform will provide an end-to-end foundation for machine learning workflow
 - Reproducible development and deployment 
 - Automated testing and continuous integration
 
-Architecture
+## Architecture
 The intended high-level architecture is:
 
                     Data Sources
@@ -48,7 +48,7 @@ The intended high-level architecture is:
 
 The architecture will evolve as individual components are implemented.
 
-Development Environment
+## Development Environment
 The project currently targets:
 
 Python 3.11
@@ -64,39 +64,39 @@ GitHub Actions
 
 The Python project configuration is maintained in pyproject.toml
 
-Testing
+## Testing
 Run the test suite with:
 
-pytest
+```pytest```
 
 Run the test suite inside Docker:
 
-docker compose run --rm test
+```docker compose run --rm test```
 
 The Docker-based test environment provides an additional check that the project can execute independently of the local Conda environment.
 
-Code Quality
+## Code Quality
 Format the project:
 
-ruff format .
+```ruff format .```
 
 Check formatting without modifying files:
 
-ruff format --check .
+```ruff format --check .```
 
 Run linting:
 
-ruff check .
+```ruff check .```
 
 Run static type checking:
 
-mypy src
+```mypy src```
 
 Run all pre-commit hooks:
 
-pre-commit run --all-files
+```pre-commit run --all-files```
 
-Continuous Integration
+## Continuous Integration
 GitHub Actions is configured to run the project's quality checks on pushes to main and pull requests targeting main.
 
 The CI pipeline currently performs:
