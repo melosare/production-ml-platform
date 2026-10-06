@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 from ml_platform.config.settings import load_settings
 from ml_platform.model.baseline import ModelInput
@@ -12,10 +12,10 @@ from ml_platform.service.prediction import PredictionService
 class PredictionRequest(BaseModel):
     """Request payload for model prediction."""
 
-    event_count: int
-    session_count: int
-    page_view_count: int
-    feature_usage_count: int
+    event_count: int = Field(ge=0)
+    session_count: int = Field(ge=0)
+    page_view_count: int = Field(ge=0)
+    feature_usage_count: int = Field(ge=0)
 
 
 class PredictionResponse(BaseModel):
@@ -31,8 +31,13 @@ def create_app(service: PredictionService) -> FastAPI:
 
     @app.get("/health")
     def health() -> dict[str, str]:
-        """Return API health status."""
+        """Return API liveness status."""
         return {"status": "ok"}
+
+    @app.get("/ready")
+    def ready() -> dict[str, str]:
+        """Return API readiness status."""
+        return {"status": "ready"}
 
     @app.post("/predict", response_model=PredictionResponse)
     def predict(request: PredictionRequest) -> PredictionResponse:
@@ -44,7 +49,13 @@ def create_app(service: PredictionService) -> FastAPI:
             feature_usage_count=request.feature_usage_count,
         )
 
-        result = service.predict(model_input)
+        try:
+            result = service.predict(model_input)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="prediction failed",
+            ) from exc
 
         return PredictionResponse(
             predicted_class=result.predicted_class,
