@@ -4,11 +4,13 @@ WORKDIR /app
 
 COPY pyproject.toml .
 COPY src ./src
-COPY tests ./tests
 COPY configs ./configs
-COPY docs ./docs
+COPY artifacts ./artifacts
 
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir .
 
-CMD ["pytest"]
+EXPOSE 8000
+
+CMD ["uvicorn", "ml_platform.api.main:create_application", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+
 
